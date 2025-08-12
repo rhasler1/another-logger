@@ -2,7 +2,6 @@ use std::path::PathBuf;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::io::ErrorKind::*;
-use anyhow::{Result};
 use chrono::prelude::*;
 use super::LogLevel;
 
@@ -11,12 +10,12 @@ pub struct SingleThreadLogger {
 }
 
 impl SingleThreadLogger {
-    pub fn new(destination: PathBuf) -> Result<Self> {
+    pub fn new(destination: PathBuf) -> std::io::Result<Self> {
         match File::create_new(destination.as_path()) {
             Ok(_)       => {}
             Err(err)    => { match err.kind() {
                 AlreadyExists => {}
-                _ => { anyhow::bail!("Logger creation error") }
+                _ => { return Err(err)  }
             }}
         }
 
@@ -25,7 +24,7 @@ impl SingleThreadLogger {
         })
     }
 
-    pub fn write(&self, log_level: LogLevel, s: &str) -> Result<()> {
+    pub fn write(&self, log_level: LogLevel, s: &str) -> std::io::Result<()> {
         let time = Local::now().format("%Y-%m-%d %H:%M:%S");
         let message = format!("{} {}: {}\n", time, log_level.prefix(), s);
 
@@ -39,7 +38,7 @@ impl SingleThreadLogger {
         Ok(())
     }
 
-    pub fn clear(&self) -> Result<()> {
+    pub fn clear(&self) -> std::io::Result<()> {
         OpenOptions::new()
             .write(true)
             .truncate(true)
