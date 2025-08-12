@@ -5,6 +5,7 @@ use std::io::ErrorKind::*;
 use chrono::prelude::*;
 use super::LogLevel;
 
+#[derive(Clone)]
 pub struct SingleThreadLogger {
     destination: PathBuf,
 }
