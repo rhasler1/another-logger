@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "another-logger"
+name = "another_logger"
 version = "0.1.0"
 dependencies = [
  "anyhow",
