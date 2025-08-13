@@ -5,7 +5,7 @@ pub enum LogLevel {
 }
 
 impl LogLevel {
-    pub fn prefix(&self) -> &'static str {
+    pub fn to_str(&self) -> &'static str {
         match self {
             LogLevel::Info  => "INFO",
             LogLevel::Warn  => "WARN",

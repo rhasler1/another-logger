@@ -1,39 +1,52 @@
-use std::path::PathBuf;
+use std::io::{Write, ErrorKind::*};
 use std::fs::{File, OpenOptions};
-use std::io::Write;
-use std::io::ErrorKind::*;
+use std::path::PathBuf;
 use chrono::prelude::*;
-use super::LogLevel;
+use super::{LogLevel, LogFormat};
 
 #[derive(Clone)]
 pub struct SingleThreadLogger {
     destination: PathBuf,
+    log_format:  LogFormat,
 }
 
 impl SingleThreadLogger {
-    pub fn new(destination: PathBuf) -> std::io::Result<Self> {
+    pub fn new(
+        destination: &str,
+        log_format: LogFormat
+    ) -> std::io::Result<Self> {
+        
+        let destination = PathBuf::from(destination);
+
         match File::create_new(destination.as_path()) {
             Ok(_)       => {}
             Err(err)    => { match err.kind() {
-                AlreadyExists => {}
-                _ => { return Err(err)  }
+                AlreadyExists   => {}
+                _               => { return Err(err)  }
             }}
         }
 
         Ok(Self {
             destination,
+            log_format,
         })
     }
 
-    pub fn write(&self, log_level: LogLevel, s: &str) -> std::io::Result<()> {
-        let time = Local::now().format("%Y-%m-%d %H:%M:%S");
-        let message = format!("{} {}: {}\n", time, log_level.prefix(), s);
+    pub fn write(
+        &self,
+        log_level: LogLevel,
+        message: &str
+    ) -> std::io::Result<()> {
+
+        let time = Local::now();
+        let level = log_level.to_str();
+        let formatted = self.log_format.format(&time, level, message);
 
         let mut file = OpenOptions::new()
             .append(true)
             .open(self.destination.as_path())?;
 
-        file.write_all(message.as_bytes())?;
+        file.write_all(formatted.as_bytes())?;
         file.sync_data()?;
 
         Ok(())
